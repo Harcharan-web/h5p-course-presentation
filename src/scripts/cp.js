@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import Parent from 'h5p-parent';
 import SummarySlide from './summary-slide';
 import NavigationLine from './navigation-line';
@@ -23,6 +24,7 @@ const KEYWORD_TITLE_SKIP = null;
  * @returns {undefined} Nothing.
  */
 let CoursePresentation = function (params, id, extras) {
+  console.log({params});
   var that = this;
   this.presentation = params.presentation;
   this.slides = this.presentation.slides;
@@ -37,6 +39,7 @@ let CoursePresentation = function (params, id, extras) {
   this.standalone = true;
   this.isReportingEnabled = false;
   this.popups = {};
+  this.animateEvent = '';
 
   if (extras.cpEditor) {
     this.editor = extras.cpEditor;
@@ -315,7 +318,7 @@ CoursePresentation.prototype.attach = function ($container) {
   var wrapperHeight = parseInt(this.$wrapper.css('height'));
   this.height = wrapperHeight !== 0 ? wrapperHeight : 400;
 
-  this.ratio = 16/9;
+  this.ratio = 16 / 9;
   // Intended base font size cannot be read from CSS, as it might be modified
   // by mobile browsers already. (The Android native browser does this.)
   this.fontSize = 16;
@@ -608,7 +611,7 @@ CoursePresentation.prototype.setProgressBarFeedback = function (slideScores) {
   if (slideScores !== undefined && slideScores) {
     // Set feedback icons for progress bar.
     slideScores.forEach(singleSlide => {
-      const $indicator = this.progressbarParts[singleSlide.slide-1]
+      const $indicator = this.progressbarParts[singleSlide.slide - 1]
         .find('.h5p-progressbar-part-has-task');
 
       if ($indicator.hasClass('h5p-answered')) {
@@ -862,6 +865,10 @@ CoursePresentation.prototype.setElementsOverride = function (override) {
       this.elementsOverride.params.behaviour.enableRetry =
           (override.retryButton === 'on' ? true : false);
     }
+
+    if (override.animationButton) {
+      this.animateEvent = override.animationButton;
+    }
   }
 };
 
@@ -903,9 +910,20 @@ CoursePresentation.prototype.attachElements = function ($slide, index) {
  */
 CoursePresentation.prototype.attachElement = function (element, instance, $slide, index) {
   const displayAsButton = (element.displayAsButton !== undefined && element.displayAsButton);
+  var show = function (event) {
+    const targetElement = event.target?.children[0]?.children;
+    for (let idx = 0; idx < targetElement.length; idx++) {
+      const elementLists = targetElement[idx];
+      if (elementLists && elementLists.classList.contains('display-none')) {
+        elementLists.classList.remove('display-none');
+        return false;
+      }
+    }
+  };
   var buttonSizeClass = (element.buttonSize !== undefined ? "h5p-element-button-" + element.buttonSize : "");
   var classes = 'h5p-element' +
-    (displayAsButton ? ' h5p-element-button-wrapper' : '') +
+    (element.animateEvent === 'onclick' ? ' slideInUp display-none' : ''); 
+  (displayAsButton ? ' h5p-element-button-wrapper' : '') +
     (buttonSizeClass.length ? ' ' + buttonSizeClass : '');
   var $elementContainer = H5P.jQuery('<div>', {
     'class': classes,
@@ -915,6 +933,11 @@ CoursePresentation.prototype.attachElement = function (element, instance, $slide
     width: element.width + '%',
     height: element.height + '%'
   }).appendTo($slide.children('[role="document"]').first());
+  
+  if (element.animateEvent === 'onclick') {
+    console.log({index});
+    H5P.jQuery(document).on('click', 'div#slide-' + index, show);
+  }
 
   const isTransparent = element.backgroundOpacity === undefined || element.backgroundOpacity === 0;
   $elementContainer.toggleClass('h5p-transparent', isTransparent);
@@ -1468,17 +1491,17 @@ CoursePresentation.prototype.showPopup = function ({
     .removeClass('h5p-animate')
     .click(close)
     .find('.h5p-popup-container')
-      .removeClass('h5p-animate')
-      .click(function () {
-        doNotClose = true;
-      })
-      .keydown(function (event) {
-        if (event.which === keyCode.ESC) {
-          close(event);
-        }
-      })
-      .find('.h5p-close-popup')
-        .focus();
+    .removeClass('h5p-animate')
+    .click(function () {
+      doNotClose = true;
+    })
+    .keydown(function (event) {
+      if (event.which === keyCode.ESC) {
+        close(event);
+      }
+    })
+    .find('.h5p-close-popup')
+    .focus();
 
   // Hide other elements from the tab order
   this.disableTabIndexes();

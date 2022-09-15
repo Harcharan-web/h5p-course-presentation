@@ -153,6 +153,13 @@
                     "importance": "medium"
                   },
                   {
+                    "name": "animateEvent",
+                    "type": "text",
+                    "optional": true,
+                    "label": "Animate Event",
+                    "importance": "medium"
+                  },
+                  {
                     "name": "goToSlideType",
                     "type": "select",
                     "label": "Go to",
@@ -732,6 +739,24 @@
           {
             "value": "off",
             "label": "Disabled"
+          }
+        ]
+      },
+      {
+        "name": "animationButton",
+        "type": "select",
+        "label": "Select Animation",
+        "importance": "low",
+        "description": "Select Animation",
+        "optional": true,
+        "options": [
+          {
+            "value": "click",
+            "label": "On Click"
+          },
+          {
+            "value": "delay",
+            "label": "Delay"
           }
         ]
       },
