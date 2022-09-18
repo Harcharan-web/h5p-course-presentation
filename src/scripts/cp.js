@@ -40,6 +40,7 @@ let CoursePresentation = function (params, id, extras) {
   this.isReportingEnabled = false;
   this.popups = {};
   this.animateEvent = '';
+  this.elementCount = 0;
 
   if (extras.cpEditor) {
     this.editor = extras.cpEditor;
@@ -910,19 +911,30 @@ CoursePresentation.prototype.attachElements = function ($slide, index) {
  */
 CoursePresentation.prototype.attachElement = function (element, instance, $slide, index) {
   const displayAsButton = (element.displayAsButton !== undefined && element.displayAsButton);
+
+  let count = 0;
   var show = function (event) {
-    const targetElement = event.target?.children[0]?.children;
-    for (let idx = 0; idx < targetElement.length; idx++) {
-      const elementLists = targetElement[idx];
+    if (event.target.classList.contains('h5p-current')) {
+      const targetElement = event.target?.children[0]?.children;
+      console.log({targetElement: targetElement});
+      let elementLists = targetElement[count];
       if (elementLists && elementLists.classList.contains('display-none')) {
+        console.log({elementLists});
         elementLists.classList.remove('display-none');
-        return false;
+        return;
+      } 
+      else if (elementLists && elementLists.classList.contains('fadeOut')) {
+        elementLists.classList.add('fadedOut');
+        return;
       }
+      count++;
     }
   };
   var buttonSizeClass = (element.buttonSize !== undefined ? "h5p-element-button-" + element.buttonSize : "");
+  console.log({typeee: element.animateType});
   var classes = 'h5p-element' +
-    (element.animateEvent === 'onclick' ? ' slideInUp display-none' : ''); 
+    (element.animateEvent === 'onclick' ? ` ${element.animateType}
+    ${element.animateType === 'fadeOut' ? '' : 'display-none'}` : ''); 
   (displayAsButton ? ' h5p-element-button-wrapper' : '') +
     (buttonSizeClass.length ? ' ' + buttonSizeClass : '');
   var $elementContainer = H5P.jQuery('<div>', {
@@ -933,9 +945,10 @@ CoursePresentation.prototype.attachElement = function (element, instance, $slide
     width: element.width + '%',
     height: element.height + '%'
   }).appendTo($slide.children('[role="document"]').first());
-  
+  this.elementCount++;
   if (element.animateEvent === 'onclick') {
-    console.log({index});
+    console.log({count: (this.elementCount - 1), element});
+    H5P.jQuery('div#slide-' + index).attr('data-id', this.elementCount - 1);
     H5P.jQuery(document).on('click', 'div#slide-' + index, show);
   }
 

@@ -160,6 +160,13 @@
                     "importance": "medium"
                   },
                   {
+                    "name": "animateType",
+                    "type": "text",
+                    "optional": true,
+                    "label": "Animate Type",
+                    "importance": "medium"
+                  },
+                  {
                     "name": "goToSlideType",
                     "type": "select",
                     "label": "Go to",
